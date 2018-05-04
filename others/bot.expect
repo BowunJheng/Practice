@@ -1,0 +1,10 @@
+#!/usr/bin/expect --
+spawn telnet 140.126.21.4
+expect "µù¥U"
+send "botbot\n"
+send "123botbot\n"
+send "\n\n\nq\nt\nu\ns"
+expect {¡¹test
+{send "^R\nhihi\n"}
+}
+interact timeout 90 { send "s" }

@@ -1,0 +1,97 @@
+<?xml vesion="1.0" encoding="BIG5"?>
+<job id="Mount">
+	<script language="VBScript">
+	<![CDATA[
+dim HTMLString
+HTMLString= "<HEAD><TITLE>Input Password for mounting remote disk</TITLE></HEAD>" & vbCrLf
+HTMLString=HTMLString & "<SCRIPT LANGUAGE=""VBScript"">" & vbCrLf
+HTMLString=HTMLString & "Sub RunScript" & vbCrLf
+HTMLString=HTMLString & "OKClicked.Value = ""OK""" & vbCrLf
+HTMLString=HTMLString & "End Sub" & vbCrLf
+HTMLString=HTMLString & "Sub CancelScript" & vbCrLf
+HTMLString=HTMLString & "OKClicked.Value = ""Cancelled""" & vbCrLf
+HTMLString=HTMLString & "End Sub" & vbCrLf
+HTMLString=HTMLString & "</SCRIPT>" & vbCrLf
+HTMLString=HTMLString & "<BODY><font size=""2"" face=""Arial"">Enter a Password:<BR /></font><font face=""Arial""><input type=""password"" name=""UserPassword"" size=""40""></font></p><input type=""hidden"" name=""OKClicked"" size = ""20""><input id=runbutton class=""button"" type=""button"" value="" OK "" name=""ok_button"" onClick=""RunScript"">&nbsp;&nbsp;&nbsp; <input id=runbutton class=""button"" type=""button"" value=""Cancel"" name=""cancel_button"" onClick=""CancelScript""></BODY>"
+		Function WSHInputBox(UserName, strLocalDrive, strRemoteShare)
+Set objExplorer = WScript.CreateObject _
+    ("InternetExplorer.Application", "IE_")
+
+objExplorer.Navigate "about:blank"
+objExplorer.document.write HTMLString
+objExplorer.ToolBar = 0
+objExplorer.StatusBar = 0
+objExplorer.Width = 400
+objExplorer.Height = 150 
+objExplorer.Left = 200
+objExplorer.Top = 150
+objExplorer.Visible = 1             
+
+Do While (objExplorer.Document.Body.All.OKClicked.Value = "")
+    Wscript.Sleep 250                 
+Loop 
+
+strPassword = objExplorer.Document.Body.All.UserPassword.Value
+strButton = objExplorer.Document.Body.All.OKClicked.Value
+objExplorer.Quit
+Wscript.Sleep 250
+
+If strButton = "Cancelled" Then
+    Wscript.Quit
+Else
+    WSHInputBox=strPassword
+End If
+		End Function
+	]]>
+	</script>
+<script language="Jscript">
+	<![CDATA[
+
+var UserName = "paskey\\bw_cheng";
+var strLocalDrive = new Array("O:", "P:", "Q:");
+var strRemoteShare = new Array("\\\\10.194.8.13\\fs03", "\\\\10.194.8.14\\fs04", "\\\\10.194.8.12\\pms");
+
+var strPer = "FALSE";
+var WSHShell = WScript.CreateObject("WScript.Shell");
+var objNetwork = WScript.CreateObject("WScript.Network");
+var oDrives = objNetwork.EnumNetworkDrives();
+var Passwd = WSHInputBox (UserName, strLocalDrive, strRemoteShare);
+var vbYesNo=4;
+var vbQuestion=32;
+var same=0;
+var vbYES=6; 
+var vbNO=7; 
+
+if (Passwd != null) 
+{
+    if(Passwd == "")
+    {
+    }else{
+        for (i = 0; i < strLocalDrive.length; i++)
+        {
+            same=0;
+            for (j = 0; j < oDrives.Count() - 1; j+=2)
+            {
+                if(strLocalDrive[i] == oDrives.Item(j))
+                {
+                    same=1;
+                    var YESNO = WSHShell.Popup("The Driver ("+oDrives.Item(j)+") is already mounted. Do you want to mount new one?", 7, oDrives.Item(j), vbYesNo+vbQuestion);
+                    if(YESNO==vbYES)
+                    {
+                        objNetwork.RemoveNetworkDrive(oDrives.Item(j));
+                        objNetwork.MapNetworkDrive(strLocalDrive[i],strRemoteShare[i],strPer,UserName,Passwd);
+                    }
+                }
+            }
+            if(same != 1)
+            {
+                objNetwork.MapNetworkDrive(strLocalDrive[i],strRemoteShare[i],strPer,UserName,Passwd);
+            }
+        }
+    }
+    
+}
+WScript.Quit();
+	]]>
+</script>
+</job>

@@ -1,0 +1,128 @@
+<?xml vesion="1.0" encoding="BIG5"?>
+<job id="Example">
+	<script language="VBScript">
+	<![CDATA[
+		Function WSHInputBox(Message,Title,Value)
+		WSHInputBox=InputBox(Message,Title,Value)
+		End Function
+	]]>
+	</script>
+<script language="Jscript">
+	<![CDATA[
+function dccw(R,N){
+if(R<2) return "00";
+var diffR=R-1;
+	while(diffR!=0){
+		var basic=dccw(R-1,dc[R-1]-1);
+		basic+=1;
+		basic=basic<<1;
+		diffR--;
+	}
+
+basic+=N;
+return basic;
+}
+function binary(number){
+        if(number>1)
+                binary(number>>1);
+ssss+=(number%2);
+return ssss;
+}
+		var vbOKOnly=0;
+		var vbOKCancel=1;
+		var vbInformation=64;
+		var Rank=0,temp=0;
+		var dcsum=0,acsum=0;
+		var ssss="";		
+
+		var title="請輸入你想選的dc或ac的Huffman Table Transmission";
+		var prompt="1.dc(00|01|05|01|01|01|01|01|\n\t01|00|00|00|00|00|00|00)\n2.ac(00|02|01|03|03|02|04|03|\n\t05|05|04|04|00|00|01|115)\n請輸入1或2";
+		var error="輸入錯誤";
+		var errormessage="錯誤訊息";
+		var tableq="是否重建TABLE";
+		var hintmessage="提示訊息";
+		var qac_len="請輸入DiffDC_length(1~12)";
+		var qdc_len="請輸入R/V-length:兩個值中間用/相隔";
+		var searchdc="測試查詢dc的Huffman code值(非查表)";
+		var searchac="測試查詢ac的Huffman code值(非查表)";
+
+		var dc=new Array(00,01,05,01,01,01,01,01,01,00,00,00,00,00,00,00);
+		var ac=new Array(00,02,01,03,03,02,04,03,05,05,04,04,00,00,01,115);
+		var WshShell=WScript.CreateObject("WScript.Shell");
+		var result=WSHInputBox(prompt,title,"1");
+		while(result!="1"&&result!="2"){
+			WshShell.Popup(error,0,errormessage,vbOKOnly+vbInformation);
+			result=WSHInputBox(prompt,title,"1");
+		}
+		var iftable=WshShell.Popup(tableq,0,hintmessage,vbOKCancel+vbInformation);
+		if(result=="1"){
+			if(iftable==1){
+				var dctable="Rank\t#\tDiffDC_length\tCode_word\n";
+				for(Rank=0;Rank<16;Rank++){
+					if(dc[Rank]==0)
+						dctable=dctable+(Rank+1)+"\t"+dc[Rank]+"\t"+dcsum+"\t"+"\n";
+					for(temp=0;temp<dc[Rank];temp++){
+						if(Rank>=2||dc[Rank]!="00"){
+							ssss="";
+							if(Rank<2||Rank==2&&temp<=1)
+							ssss+="0";
+							var dccw_result=dccw(Rank,temp);
+							var ans=binary(dccw_result);
+							if(temp==0)
+								dctable=dctable+(Rank+1)+"\t"+dc[Rank]+"\t"+(temp+dcsum+1)+"\t\t"+ans+"\n";
+							else
+								dctable=dctable+"\t"+dc[Rank]+"\t"+(temp+dcsum+1)+"\t\t"+ans+"\n";
+						}
+					}
+					dcsum+=dc[Rank];
+				}
+				WshShell.Popup(dctable,0,hintmessage,vbOKCancel+vbInformation);
+			}
+			var no_ac=WSHInputBox(qac_len,searchdc,"1");
+			while(no_ac>12||no_ac<1){
+				WshShell.Popup(error,0,errormessage,vbOKOnly+vbInformation);
+				no_ac=WSHInputBox(qac_len,searchdc,"1");
+			}
+			temp=0;
+			var count=0;
+			while(no_ac>0){
+				no_ac-=dc[temp];
+				count++;
+				temp++;
+			}
+			no_ac+=dc[--temp];
+			ssss="";
+			if(count<3||count==3&&no_ac<=1)
+			ssss+="0";
+			dccw_result=dccw(count-1,no_ac-1);
+			ans=binary(dccw_result);
+			WshShell.Popup(ans,0,"lala",vbOKOnly+vbInformation);
+		}else{
+			if(iftable==1){
+				var dctable="Rank\t#\tcode_length\tCode_word\n";
+				for(Rank=0;Rank<9;Rank++){
+					if(ac[Rank]==0)
+						dctable=dctable+(Rank+1)+"\t"+ac[Rank]+"\t"+acsum+"\t"+"\n";
+					for(temp=0;temp<ac[Rank];temp++){
+						if(Rank>=3||ac[Rank]!="00"){
+							ssss="";
+							var dccw_result=dccw(Rank,temp);
+							var ans=binary(dccw_result);
+							if(temp==0)
+								dctable=dctable+(Rank+1)+"\t"+ac[Rank]+"\t"+(temp+acsum+1)+"\t\t"+ans+"\n";
+							else
+								dctable=dctable+"\t"+ac[Rank]+"\t"+(temp+acsum+1)+"\t\t"+ans+"\n";
+						}
+					}
+					acsum+=ac[Rank];
+				}
+				WshShell.Popup(dctable,0,hintmessage,vbOKCancel+vbInformation);
+
+			}
+			var search=WSHInputBox(qac_len,searchac,"1");		
+		}
+
+
+	]]>
+</script>
+</job>
